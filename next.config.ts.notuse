@@ -1,0 +1,33 @@
+import type { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {
+  basePath: '/next',
+  trailingSlash: false,
+  output: 'standalone',
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV,
+    NEXT_PUBLIC_BASE_PATH: process.env.NEXT_PUBLIC_BASE_PATH || '/next',
+  },
+  async rewrites() {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api2';
+    return [
+      {
+        source: '/api2/:path*',
+        destination: apiUrl.includes('localhost')
+          ? 'http://localhost:5000/api2/:path*'
+          : 'https://psbiis/api2/:path*',
+      },
+    ];
+  },
+  // Enable TypeScript checking in production
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  // Enable ESLint checking in production
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
+};
+
+export default nextConfig;
