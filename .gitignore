@@ -1,0 +1,10 @@
+# .gitignore
+node_modules/
+.next/
+dist/
+logs/
+.env*.local
+.env.production
+test/node_modules/lodash/_createRange.js
+/.vs
+.vs/nodejs/CopilotIndices/18.7.1253.33689/CodeChunks.db

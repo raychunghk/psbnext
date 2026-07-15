@@ -1,0 +1,392 @@
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["driverAdapters", "partialIndexes"]
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "sqlserver"
+}
+
+model Report {
+  ReportID   Int     @id(map: "Report$PrimaryKey1") @unique(map: "Report$PrimaryKey") @default(autoincrement())
+  ReportName String? @map("ReportName") @db.VarChar(255)
+  Status     String? @default("enable", map: "DF__Report__Status__336AA144") @db.VarChar(50)
+  Rank       Int?    @default(0, map: "DF__Report__Rank__345EC57D")
+
+  @@map("Report")
+}
+
+model District {
+  DistrictID   Int     @id(map: "District$PrimaryKey") @unique(map: "District$DistrictID") @default(autoincrement())
+  DistrictName String? @db.VarChar(255)
+  Status       String? @default("enable", map: "DF__District__Status__2DB1C7EE") @db.VarChar(50)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model District_Report {
+  DistrictID Int    @default(0, map: "DF__District___Distr__2EA5EC27")
+  ReportID   Int    @default(0, map: "DF__District___Repor__2F9A1060")
+  rel_Value  String @db.VarChar(50)
+
+  @@index([DistrictID], map: "District_Report$DistrictID")
+  @@index([ReportID], map: "District_Report$ReportID")
+  @@ignore
+}
+
+model Event {
+  EventID      Int       @id(map: "Event$PrimaryKey") @default(autoincrement())
+  EventTitle   String?   @db.VarChar(255)
+  EventDate    DateTime?
+  UpdateDate   DateTime?
+  IsInArchive  String?   @default("no", map: "DF__Event__IsInArchi__318258D2") @db.VarChar(5)
+  Status       String?   @default("enable", map: "DF__Event__Status__32767D0B") @db.VarChar(50)
+  FileLocation String?   @db.VarChar(255)
+}
+
+model gf220contactname {
+  contactname_id       Int                    @id(map: "PK_gf220contactname_2__10") @default(autoincrement())
+  contactname          String                 @db.VarChar(50)
+  br                   String                 @db.Char(20)
+  tel                  String?                @db.Char(8)
+  fax                  String?                @db.Char(8)
+  mobile               String?                @db.Char(8)
+  publicwork           Boolean
+  supplier             Boolean
+  createdatetime       DateTime?              @default(now(), map: "DF_gf220contactname_createdatetime") @db.SmallDateTime
+  gf220contractor      gf220contractor        @relation(fields: [br], references: [br], onUpdate: NoAction, map: "FK_gf220contactname_1__10")
+  gf220prj_contact_rel gf220prj_contact_rel[]
+
+  @@unique([br, contactname], map: "UQ_gf220contactname_3__10")
+}
+
+model gf220contractor {
+  br                 String               @id(map: "PK_gf220contractor_1__10") @db.Char(20)
+  name               String?              @db.VarChar(50)
+  address            String?              @db.VarChar(255)
+  createdatetime     DateTime?            @default(now(), map: "DF_gf220contractor_createdatetime") @db.SmallDateTime
+  gf220contactname   gf220contactname[]
+  gf220tenderprocess gf220tenderprocess[]
+}
+
+model gf220officer {
+  id                Int               @id(map: "PK_gf220officer") @default(autoincrement())
+  userid            String            @db.Char(20)
+  post              String?           @db.Char(50)
+  email             String?           @db.Char(50)
+  levelid           Int
+  name              String?           @db.VarChar(100)
+  isActive          String?           @db.Char(1)
+  createdatetime    DateTime?         @default(now(), map: "DF_gf220officer_createdatetime") @db.SmallDateTime
+  isPSM             Boolean           @default(false, map: "DF_gf220officer_isPSM")
+  gf220officerlevel gf220officerlevel @relation(fields: [levelid], references: [levelid], onUpdate: NoAction, map: "FK_gf220officer_1__10")
+}
+
+model gf220officerlevel {
+  levelid        Int            @id(map: "PK_gf220officerlevel_1__10") @default(autoincrement())
+  levelname      String         @db.VarChar(50)
+  precedence     Float          @unique(map: "UQ_gf220officerlevel_2__10")
+  identifier     String         @unique(map: "UQ_gf220officerlevel_3__10") @db.VarChar(20)
+  createdatetime DateTime?      @default(now(), map: "DF_gf220officerlevel_createdatetime") @db.SmallDateTime
+  gf220officer   gf220officer[]
+}
+
+model gf220officerold {
+  userid          String            @id(clustered: false, map: "PK_gf220officer_2__10") @db.Char(20)
+  password        String            @db.Char(10)
+  name            String?           @db.Char(25)
+  post            String?           @db.Char(25)
+  email           String?           @db.VarChar(50)
+  createdatetime  DateTime?         @default(now(), map: "DF_gf220officerold_createdatetime") @db.SmallDateTime
+  gf220projectold gf220projectold[]
+}
+
+model gf220prj_contact_rel {
+  contactname_id   Int
+  projectid        Int
+  gf220project     gf220project     @relation(fields: [projectid], references: [projectid], onUpdate: NoAction, map: "FK_gf220prj_contact_rel_1__10")
+  gf220contactname gf220contactname @relation(fields: [contactname_id], references: [contactname_id], onUpdate: NoAction, map: "FK_gf220prj_contact_rel_2__10")
+
+  @@unique([contactname_id, projectid], map: "UQ_gf220prj_contact_rel_1__10")
+}
+
+model gf220project {
+  projectid            Int                    @id(map: "PK_gf220project_2__10")
+  description          String                 @db.VarChar(250)
+  worktypeid           String                 @db.Char(5)
+  userid               String                 @db.Char(20)
+  quotationend         DateTime               @db.DateTime
+  gf220number          String                 @db.Char(7)
+  workorderno          String                 @db.Char(8)
+  schedulecommence     DateTime               @db.DateTime
+  schedulecomplete     DateTime               @db.DateTime
+  estimatecost         Float?
+  actualcost           Float?
+  actualcommence       DateTime?              @db.DateTime
+  actualcomplete       DateTime?              @db.DateTime
+  workmanship          String?                @db.Char(25)
+  progress             String?                @db.Char(25)
+  site_safety          String?                @db.Char(25)
+  env_poll_control     String?                @db.Char(25)
+  organization         String?                @db.Char(25)
+  adeq_resources       String?                @db.Char(25)
+  overall_performance  String?                @db.Char(25)
+  endorserID           String?                @db.Char(20)
+  isEditable           Boolean?
+  tenderAwardedDate    DateTime?              @db.DateTime
+  endorsing            Boolean?
+  isEndorsed           Boolean?
+  rejectReason         String?                @db.Text
+  status               Boolean?
+  adverse_report       String?                @db.Char(25)
+  post                 String?                @db.Char(50)
+  gr_userID            String?                @db.Char(20)
+  psm_useridxxx        String?                @db.Char(20)
+  isDraft              String?                @db.Char(1)
+  approvalDate         DateTime?              @db.DateTime
+  approvalRemark       String?                @db.Text
+  isRequestApproval    String?                @db.Char(1)
+  isRejected           String?                @db.Char(1)
+  createdatetime       DateTime?              @default(now(), map: "DF_gf220project_createdatetime") @db.SmallDateTime
+  isDeleted            String                 @default("N", map: "DEFAULT_gf220project_isDeleted") @db.VarChar(3)
+  remarks              String?                @db.Text
+  comment              Bytes?                 @db.VarBinary(255)
+  gf220prj_contact_rel gf220prj_contact_rel[]
+  gf220tenderprocess   gf220tenderprocess[]
+
+  @@unique([projectid, gf220number, workorderno], map: "UIX_gf220project_ActiveNumbers", where: raw("([isDeleted]='N')"))
+  @@unique([gf220number, workorderno], map: "UIX_gf220project_NewActiveNumbers", where: raw("([isDeleted]='N' AND [createdatetime]>='2025-12-15')"))
+  @@index([worktypeid, userid, gf220number, workorderno], map: "NonClusteredIndex-20241028-111231")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model gf220project_backup_2025dec19 {
+  projectid           Int
+  description         String    @db.VarChar(250)
+  worktypeid          String    @db.Char(5)
+  userid              String    @db.Char(20)
+  quotationend        DateTime  @db.DateTime
+  gf220number         String    @db.Char(7)
+  workorderno         String    @db.Char(8)
+  schedulecommence    DateTime  @db.DateTime
+  schedulecomplete    DateTime  @db.DateTime
+  estimatecost        Float?
+  actualcost          Float?
+  actualcommence      DateTime? @db.DateTime
+  actualcomplete      DateTime? @db.DateTime
+  workmanship         String?   @db.Char(25)
+  progress            String?   @db.Char(25)
+  site_safety         String?   @db.Char(25)
+  env_poll_control    String?   @db.Char(25)
+  organization        String?   @db.Char(25)
+  adeq_resources      String?   @db.Char(25)
+  overall_performance String?   @db.Char(25)
+  endorserID          String?   @db.Char(20)
+  isEditable          Boolean?
+  tenderAwardedDate   DateTime? @db.DateTime
+  endorsing           Boolean?
+  isEndorsed          Boolean?
+  rejectReason        String?   @db.Text
+  status              Boolean?
+  adverse_report      String?   @db.Char(25)
+  post                String?   @db.Char(50)
+  gr_userID           String?   @db.Char(20)
+  psm_useridxxx       String?   @db.Char(20)
+  isDraft             String?   @db.Char(1)
+  approvalDate        DateTime? @db.DateTime
+  approvalRemark      String?   @db.Text
+  isRequestApproval   String?   @db.Char(1)
+  isRejected          String?   @db.Char(1)
+  createdatetime      DateTime? @db.SmallDateTime
+  isDeleted           String    @db.VarChar(3)
+  remarks             String?   @db.Text
+  comment_tmp         String?   @db.VarChar(Max)
+  remarks_tmp         String?   @db.VarChar(Max)
+  comment             Bytes?    @db.VarBinary(255)
+
+  @@ignore
+}
+
+model gf220projectold {
+  projectid        Int             @id(clustered: false, map: "PK_gf220project_1__10")
+  description      String          @db.VarChar(250)
+  worktypeid       String          @db.Char(5)
+  userid           String          @db.Char(20)
+  quotationend     DateTime        @db.DateTime
+  gf220number      String          @db.Char(12)
+  workorderno      String          @db.Char(8)
+  schedulecommence DateTime        @db.DateTime
+  schedulecomplete DateTime        @db.DateTime
+  estimatecost     Float?
+  actualcost       Float?
+  actualcommence   DateTime?       @db.DateTime
+  actualcomplete   DateTime?       @db.DateTime
+  comment          Bytes?          @db.VarBinary(255)
+  workmanship      String?         @db.Char(25)
+  progress         String?         @db.Char(25)
+  site_safety      String?         @db.Char(25)
+  env_poll_control String?         @db.Char(25)
+  organization     String?         @db.Char(25)
+  adeq_resources   String?         @db.Char(25)
+  createdatetime   DateTime?       @default(now(), map: "DF_gf220projectold_createdatetime") @db.SmallDateTime
+  gf220officerold  gf220officerold @relation(fields: [userid], references: [userid], onUpdate: NoAction, map: "FK_gf220project_2__10")
+  gf220worktype    gf220worktype   @relation(fields: [worktypeid], references: [worktypeid], onUpdate: NoAction, map: "FK_gf220project_3__10")
+}
+
+model gf220tempRegister {
+  RUN_ID            Int       @id(map: "PK__gf220tem__18C908E4942DB819") @default(autoincrement())
+  projectid         Int?
+  description       String    @db.VarChar(250)
+  worktypeid        String    @db.Char(5)
+  userid            String    @db.Char(20)
+  quotationend      DateTime  @db.DateTime
+  gf220number       String    @db.Char(7)
+  workorderno       String    @db.Char(8)
+  schedulecommence  DateTime  @db.DateTime
+  schedulecomplete  DateTime  @db.DateTime
+  tenderAwardedDate DateTime? @db.DateTime
+  br                String?   @db.Char(20)
+  name              String?   @db.VarChar(50)
+  price             Float?
+  declined          Boolean   @default(false, map: "DF_gf220tempRegister_new_declined")
+  accept            Boolean   @default(false, map: "DF_gf220tempRegister_new_accept")
+  address           String?   @db.VarChar(255)
+  contactname       String?   @db.VarChar(50)
+  mobile            String?   @db.Char(8)
+  tel               String?   @db.Char(8)
+  fax               String?   @db.Char(8)
+  publicwork        Boolean   @default(false, map: "DF_gf220tempRegister_new_publicwork")
+  supplier          Boolean   @default(false, map: "DF_gf220tempRegister_new_supplier")
+  isapproved        Boolean   @default(false, map: "DF_gf220tempRegister_new_isapproved")
+  isrejected        Boolean   @default(false, map: "DF_gf220tempRegister_new_isrejected")
+  remarks           String?   @db.VarChar(2000)
+  approvedby        String?   @db.VarChar(50)
+  approvedatetime   DateTime? @db.SmallDateTime
+  modifiedby        String?   @db.VarChar(50)
+  modifiedatetime   DateTime? @default(now(), map: "DF_gf220tempRegister_new_modifiedatetime") @db.SmallDateTime
+  createdby         String?   @db.VarChar(50)
+  createdatetime    DateTime? @default(now(), map: "DF_gf220tempRegister_new_createdatetime") @db.SmallDateTime
+}
+
+model gf220tenderprocess {
+  projectid       Int
+  br              String          @db.Char(20)
+  price           Float
+  accept          Boolean
+  declined        Boolean
+  name            String?         @db.VarChar(50)
+  address         String?         @db.VarChar(255)
+  contactname     String?         @db.VarChar(50)
+  tel             String?         @db.Char(8)
+  fax             String?         @db.Char(8)
+  mobile          String?         @db.Char(8)
+  publicwork      Boolean?
+  supplier        Boolean?
+  createdatetime  DateTime?       @default(now(), map: "DF_gf220tenderprocess_createdatetime") @db.SmallDateTime
+  gf220contractor gf220contractor @relation(fields: [br], references: [br], onUpdate: NoAction, map: "FK_gf220tenderprocess_1__10")
+  gf220project    gf220project    @relation(fields: [projectid], references: [projectid], onUpdate: NoAction, map: "FK_gf220tenderprocess_3__10")
+
+  @@id([projectid, br], map: "PK___2__10", clustered: false)
+  @@unique([projectid, br], map: "UQ_gf220tenderprocess_2__10", clustered: true)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model gf220tenderprocess_new {
+  projectid      Int
+  br             String    @db.Char(20)
+  price          Float
+  accept         Boolean
+  declined       Boolean
+  name           String?   @db.VarChar(50)
+  address        String?   @db.VarChar(255)
+  contactname    String    @db.VarChar(50)
+  tel            String?   @db.Char(8)
+  fax            String?   @db.Char(8)
+  mobile         String?   @db.Char(8)
+  publicwork     Boolean
+  supplier       Boolean
+  createdate     DateTime? @db.DateTime
+  createdatetime DateTime? @default(now(), map: "DF_gf220tenderprocess_new_createdatetime") @db.SmallDateTime
+
+  @@ignore
+}
+
+model gf220worktype {
+  worktypeid      String            @id(clustered: false, map: "PK_gf220worktype_1__10") @db.Char(5)
+  category        String            @db.Char(50)
+  description     String            @db.VarChar(150)
+  createdatetime  DateTime?         @default(now(), map: "DF_gf220worktype_createdatetime") @db.SmallDateTime
+  gf220projectold gf220projectold[]
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model officerlevel {
+  levelid        String?   @db.Char(12)
+  levelname      String?   @db.Char(51)
+  precedence     String?   @db.Char(25)
+  identifier     String?   @db.Char(21)
+  createdatetime DateTime? @default(now(), map: "DF_officerlevel_createdatetime") @db.SmallDateTime
+
+  @@ignore
+}
+
+model ReportDetail {
+  ArchiveID    Int       @id(map: "ReportDetail$PrimaryKey") @default(autoincrement())
+  ReportID     Int?      @default(0, map: "DF__ReportDet__Repor__3552E9B6")
+  ReportDate   DateTime?
+  UpdateDate   DateTime?
+  FileLocation String?   @db.VarChar(255)
+  Status       String?   @default("enable", map: "DF__ReportDet__Statu__36470DEF") @db.VarChar(50)
+
+  @@index([ArchiveID], map: "ReportDetail$ArchiveID")
+  @@index([ReportID], map: "ReportDetail$ReportID")
+}
+
+model sorting {
+  index    Int     @id(map: "sorting$PrimaryKey") @default(autoincrement())
+  sortItem String? @db.VarChar(50)
+}
+
+model sysdiagrams {
+  name         String @db.NVarChar(128)
+  principal_id Int
+  diagram_id   Int    @id(map: "PK__sysdiagr__C2B05B6108B54D69") @default(autoincrement())
+  version      Int?
+  definition   Bytes?
+
+  @@unique([principal_id, name], map: "UK_principal_name")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model tblIsPSM {
+  RUN_ID     Float?
+  POST_TITLE String? @db.NVarChar(255)
+  isPSM      String? @db.NVarChar(10)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model test {
+  f1 String? @db.Char(255)
+  f2 String? @db.Char(255)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model testtable {
+  f1 Int?
+  f2 String? @db.VarChar(50)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model yearduration {
+  startyear Int
+  endyear   Int
+
+  @@ignore
+}

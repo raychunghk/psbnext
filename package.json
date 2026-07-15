@@ -1,0 +1,9 @@
+{
+  "name": "psbnode-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node server.js",
+    "clean": "node -e \"const fs=require('fs'); ['backend/dist', 'frontend/.next'].forEach(p => fs.rmSync(p, {recursive: true, force: true})); console.log('Cleaned build artifacts!')\""
+  }
+}
