@@ -11,20 +11,14 @@ export default withBundleAnalyzer({
   },
   basePath: '/next',
   async rewrites() {
-    // Env strategy: the backend is chosen here (server-side) and baked into the
-    // build's route manifest. Set `API_TARGET` at build time to point at a
-    // specific backend (e.g. staging); otherwise it falls back to NODE_ENV
-    // defaults, so `next dev` hits local and a production build hits psbiis
-    // without needing any .env file or NEXT_PUBLIC_* variable.
-    const nodeEnv = process.env.NODE_ENV || 'undefined';
-    const isDev = nodeEnv === 'development';
-    const apiTarget =
-      process.env.API_TARGET ||
-      (isDev ? 'http://localhost:5000/api2' : 'https://psbiis/api2');
-    console.log(
-      `[psbnext] env check -> NODE_ENV=${nodeEnv}, mode=${isDev ? 'development' : 'production'}, ` +
-        `API_TARGET=${process.env.API_TARGET ? 'explicit' : 'default'}, apiTarget=${apiTarget}`
-    );
+    // Single combined IIS app: the Next.js server (this app, under /next) proxies
+    // every `${basePath}/api2/*` request to the NestJS backend running as a local
+    // process on the same machine. There is no production/development switch — the
+    // backend is always reached over loopback, so the same build works everywhere.
+    // Override the port/host with `API_TARGET` only if the backend does not listen
+    // on the default below.
+    const apiTarget = process.env.API_TARGET || 'http://localhost:5000/api2';
+    console.log(`[psbnext] rewrite /api2/* -> ${apiTarget}/*`);
     return [
       {
         source: '/api2/:path*',
