@@ -16,3 +16,4 @@ deploy.zip
 nextdeploy.7z
 7z2602-extra (1).7z
 deploy.zip
+/backend/src/generated/prisma

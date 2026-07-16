@@ -30,7 +30,7 @@ export const FinancialShell: React.FC<{ children: React.ReactNode }> = ({ childr
 
   return (
     <AppShell
-      header={{ height: 90 }}
+      header={{ height: 120 }}
       navbar={{ width: 260, breakpoint: 'sm', collapsed: { mobile: !opened } }}
       padding="md"
     >
