@@ -113,6 +113,53 @@ export class PsbService {
     });
   }
 
+  async createReport(name: string, rank: number) {
+    const reportName = name.trim();
+    if (!reportName) {
+      throw new BadRequestException('Please input the Report Name.');
+    }
+
+    const existing = await this.prisma.client.report.findFirst({
+      where: { ReportName: reportName, Status: 'enable' },
+    });
+    if (existing) {
+      throw new BadRequestException('This Report already exists.');
+    }
+
+    const report = await this.prisma.client.report.create({
+      data: { ReportName: reportName, Rank: rank, Status: 'enable' },
+    });
+
+    // Mirror the legacy ASP behaviour: pair the new report with every enabled
+    // district in the District_Report table (rel_Value 'null' by default).
+    const districts = await this.prisma.client.district.findMany({
+      where: { Status: 'enable' },
+      select: { DistrictID: true },
+    });
+    for (const district of districts) {
+      await this.prisma.client.$executeRaw`
+        INSERT INTO District_Report(DistrictID, ReportID, rel_Value)
+        VALUES (${district.DistrictID}, ${report.ReportID}, 'null')
+      `;
+    }
+
+    return report;
+  }
+
+  async updateReportRank(reportId: number, rank: number) {
+    return this.prisma.client.report.update({
+      where: { ReportID: reportId },
+      data: { Rank: rank },
+    });
+  }
+
+  async deleteReport(reportId: number) {
+    return this.prisma.client.report.update({
+      where: { ReportID: reportId },
+      data: { Status: 'disable' },
+    });
+  }
+
   async uploadReport(data: {
     reportId: number;
     reportDate: Date;
@@ -179,6 +226,46 @@ export class PsbService {
   async getDistrictById(districtId: number) {
     return this.prisma.client.district.findUnique({
       where: { DistrictID: districtId },
+    });
+  }
+
+  async createDistrict(name: string) {
+    const districtName = name.trim();
+    if (!districtName) {
+      throw new BadRequestException('Please input the District Name.');
+    }
+
+    const existing = await this.prisma.client.district.findFirst({
+      where: { DistrictName: districtName, Status: 'enable' },
+    });
+    if (existing) {
+      throw new BadRequestException('This District already exists.');
+    }
+
+    const district = await this.prisma.client.district.create({
+      data: { DistrictName: districtName, Status: 'enable' },
+    });
+
+    // Mirror the legacy ASP behaviour: pair the new district with every enabled
+    // report in the District_Report table (rel_Value 'null' by default).
+    const reports = await this.prisma.client.report.findMany({
+      where: { Status: 'enable' },
+      select: { ReportID: true },
+    });
+    for (const report of reports) {
+      await this.prisma.client.$executeRaw`
+        INSERT INTO District_Report(DistrictID, ReportID, rel_Value)
+        VALUES (${district.DistrictID}, ${report.ReportID}, 'null')
+      `;
+    }
+
+    return district;
+  }
+
+  async deleteDistrict(districtId: number) {
+    return this.prisma.client.district.update({
+      where: { DistrictID: districtId },
+      data: { Status: 'disable' },
     });
   }
 

@@ -9,8 +9,8 @@ export default function FinancialHome() {
         <Stack gap="sm" align="center">
           <Title order={3}>Welcome</Title>
           <Text c="dimmed" ta="center">
-            Use the menu to upload a report file, delete a file, or modify the
-            report-district table.
+            Use the menu to upload or delete a report file, manage reports and
+            districts, or modify the report-district table.
           </Text>
         </Stack>
       </Paper>
