@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Body, Param, Query, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Query,
+  ParseIntPipe,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { PsbService } from './psb.service';
 
 @Controller('psb')
@@ -8,7 +20,7 @@ export class PsbController {
   // =============================================
   // HEALTH CHECK
   // =============================================
-  
+
   @Get()
   getHello(): string {
     return this.psbService.getHello();
@@ -17,7 +29,7 @@ export class PsbController {
   // =============================================
   // EVENT ENDPOINTS
   // =============================================
-  
+
   @Get('events')
   async getEvents() {
     return this.psbService.getEnabledEvents();
@@ -25,11 +37,12 @@ export class PsbController {
 
   @Post('events')
   async createEvent(
-    @Body() createEventDto: {
+    @Body()
+    createEventDto: {
       EventTitle: string;
       EventDate: string; // ISO date string
       FileLocation: string;
-    }
+    },
   ) {
     const eventDate = new Date(createEventDto.EventDate);
     return this.psbService.createEvent({
@@ -55,7 +68,7 @@ export class PsbController {
   // =============================================
   // REPORT ENDPOINTS
   // =============================================
-  
+
   @Get('reports')
   async getReports() {
     return this.psbService.getEnabledReports();
@@ -71,10 +84,40 @@ export class PsbController {
     return this.psbService.getLatestReportDetail(id);
   }
 
+  @Get('reports/:id/details')
+  async getReportDetails(@Param('id', ParseIntPipe) id: number) {
+    return this.psbService.getReportDetails(id);
+  }
+
+  @Post('reports/upload')
+  @UseInterceptors(FileInterceptor('uploadFile'))
+  async uploadReport(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: { report: string; reportDate: string },
+  ) {
+    if (!file) {
+      throw new BadRequestException('Please select the upload file.');
+    }
+    const reportId = Number(body.report);
+    if (!Number.isInteger(reportId)) {
+      throw new BadRequestException('A valid report must be selected.');
+    }
+    const reportDate = new Date(body.reportDate);
+    if (Number.isNaN(reportDate.getTime())) {
+      throw new BadRequestException('A valid report date is required.');
+    }
+    return this.psbService.uploadReport({ reportId, reportDate, file });
+  }
+
+  @Post('reportdetails/:id/delete')
+  async deleteReportDetail(@Param('id', ParseIntPipe) id: number) {
+    return this.psbService.deleteReportDetail(id);
+  }
+
   // =============================================
   // DISTRICT ENDPOINTS
   // =============================================
-  
+
   @Get('districts')
   async getDistricts() {
     return this.psbService.getEnabledDistricts();
@@ -98,7 +141,7 @@ export class PsbController {
   @Get('districts/:id/additional-reports')
   async getAdditionalReports(
     @Param('id', ParseIntPipe) id: number,
-    @Query('area') area: string
+    @Query('area') area: string,
   ) {
     return this.psbService.getAdditionalReports(id, area);
   }
@@ -106,7 +149,7 @@ export class PsbController {
   // =============================================
   // SORTING ENDPOINT
   // =============================================
-  
+
   @Post('sort')
   async sortItems(@Body() body: { items: string[] }) {
     return this.psbService.sortItems(body.items);
