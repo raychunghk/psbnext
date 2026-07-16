@@ -10,3 +10,12 @@ export interface UploadReportDto {
   reportDate: string;
   file: File;
 }
+
+export interface ReportDetail {
+  ArchiveID: number;
+  ReportID: number | null;
+  ReportDate: string | null;
+  UpdateDate: string | null;
+  FileLocation: string | null;
+  Status: string | null;
+}
