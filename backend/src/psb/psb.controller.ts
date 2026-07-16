@@ -90,7 +90,11 @@ export class PsbController {
   }
 
   @Post('reports/upload')
-  @UseInterceptors(FileInterceptor('uploadFile'))
+  @UseInterceptors(
+    FileInterceptor('uploadFile', {
+      limits: { fileSize: 25 * 1024 * 1024 },
+    }),
+  )
   async uploadReport(
     @UploadedFile() file: Express.Multer.File,
     @Body() body: { report: string; reportDate: string },

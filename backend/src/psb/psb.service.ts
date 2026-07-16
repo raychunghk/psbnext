@@ -1,9 +1,42 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { PrismaService } from '../prisma.service';
 
-const DENIED_EXTENSIONS = ['asp', 'jsp', 'php', 'java', 'class'];
+// Extensions that must never be written to the (web-accessible) upload share:
+// server-executable types (mirrors the legacy ASP DeniedFilesList) plus
+// browser-executable types that could enable stored XSS if served directly.
+const DENIED_EXTENSIONS = [
+  'asp',
+  'aspx',
+  'jsp',
+  'php',
+  'php3',
+  'php4',
+  'php5',
+  'phtml',
+  'java',
+  'class',
+  'jar',
+  'js',
+  'mjs',
+  'cjs',
+  'vbs',
+  'html',
+  'htm',
+  'xhtml',
+  'shtml',
+  'svg',
+  'xml',
+  'exe',
+  'bat',
+  'cmd',
+  'com',
+  'sh',
+  'cgi',
+  'pl',
+];
 
 @Injectable()
 export class PsbService {
@@ -104,7 +137,10 @@ export class PsbService {
       path.join(process.cwd(), 'uploads', 'financial', 'file');
     fs.mkdirSync(uploadDir, { recursive: true });
 
-    const fileName = path.basename(file.originalname);
+    // Prefix a unique token so re-uploading a file with the same name (e.g.
+    // "monthly.xlsx" each month) does not overwrite previously stored versions.
+    const originalName = path.basename(file.originalname);
+    const fileName = `${Date.now()}-${randomUUID()}-${originalName}`;
     fs.writeFileSync(path.join(uploadDir, fileName), file.buffer);
 
     // Web-accessible location stored in the DB (mirrors the old FileLocation).
