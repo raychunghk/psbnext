@@ -15,13 +15,7 @@ export const EventHeader: React.FC = () => {
       >
         <Title order={1} c="white">CPD Events Posting</Title>
       </Box>
-      <Box
-        style={{
-          backgroundColor: '#0B0B9E',
-          height: '4px',
-          borderRadius: '2px',
-        }}
-      />
+    
     </>
   );
 };

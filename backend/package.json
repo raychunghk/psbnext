@@ -6,8 +6,9 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-       "clean": "powershell -Command \"Remove-Item -Path 'dist', 'node_modules\\.prisma', 'src\\generated' -Recurse -Force -ErrorAction SilentlyContinue\"",
+    "clean": "powershell -Command \"Remove-Item -Path 'dist', 'node_modules\\.prisma', 'src\\generated' -Recurse -Force -ErrorAction SilentlyContinue\"",
     "build": "prisma generate && nest build",
+    "pgen": "prisma generate",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start2": "nest start",
@@ -41,6 +42,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.0",
     "@types/supertest": "^7.0.0",
+    "esbuild": "^0.28.1",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",

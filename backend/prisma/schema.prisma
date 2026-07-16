@@ -2,9 +2,10 @@ generator client {
   provider        = "prisma-client"
   output          = "../src/generated/prisma"
   previewFeatures = ["driverAdapters", "partialIndexes"]
-  moduleFormat = "cjs"
+  moduleFormat    = "cjs"
+  importFileExtension = ""     
+  binaryTargets   = ["native"]  
 }
-
 datasource db {
   provider = "sqlserver"
 }

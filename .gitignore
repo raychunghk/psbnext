@@ -8,3 +8,12 @@ logs/
 test/node_modules/lodash/_createRange.js
 /.vs
 .vs/nodejs/CopilotIndices/18.7.1253.33689/CodeChunks.db
+*.zip
+*.7z
+7z2602-extra (1).7z
+r
+deploy.zip
+nextdeploy.7z
+7z2602-extra (1).7z
+ dep
+deploy.zip

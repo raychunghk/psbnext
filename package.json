@@ -4,6 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "node server.js",
-    "clean": "node -e \"const fs=require('fs'); ['backend/dist', 'frontend/.next'].forEach(p => fs.rmSync(p, {recursive: true, force: true})); console.log('Cleaned build artifacts!')\""
+    "clean": "node -e \"const fs=require('fs'); ['backend/dist', 'frontend/.next'].forEach(p => fs.rmSync(p, {recursive: true, force: true})); console.log('Cleaned build artifacts!')\"",
+    "build:backend": "cd backend && npm run build && npm prune --production",
+    "build:frontend": "cd frontend && npm run build"  ,
+    "pack": "node pack.js both",
+    "packnext": "node pack.js frontend",
+    "packnest": "node pack.js backend"
   }
 }

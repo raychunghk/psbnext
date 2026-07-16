@@ -9,16 +9,16 @@ import {
   LoadingOverlay,
   Box,
   Stack,
-  Text,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { Event } from '@/types/event';
-import { getApiUrl } from '@/lib/config';
 import { EventHeader } from '@/components/events/EventHeader';
 import { EventTable } from '@/components/events/EventTable';
 import { EventActions } from '@/components/events/EventActions';
 
-const API_BASE = getApiUrl();
+// Crucial: Point directly to the base path + /api proxied route.
+// Next.js rewrites will catch anything starting with /next/api and pass it to Nest.js.
+const API_BASE = '/next/api';
 
 export default function EventsPage() {
   const router = useRouter();
@@ -33,7 +33,7 @@ export default function EventsPage() {
     try {
       setLoading(true);
       const url = `${API_BASE}/psb/events`;
-      console.log(`Fetching events from: ${url}`);
+      console.log(`Fetching events from relative route: ${url}`);
       
       const response = await axios.get<Event[]>(url);
       console.log('Events response:', response.data);
