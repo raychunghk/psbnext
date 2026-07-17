@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "clean": "powershell -Command \"Remove-Item -Path 'dist', 'node_modules\\.prisma', 'src\\generated' , '.next' -Recurse -Force -ErrorAction SilentlyContinue\"",
+    "clean": "powershell -Command \"Remove-Item -Path     '.next' -Recurse -Force -ErrorAction SilentlyContinue\"",
     "xbuild": "next build",
-    "build": "next build && node build-post.js",
+    "build": "next build && node post-build.js",
     "start": "next start",
     "lint": "eslint"
   },
