@@ -1,5 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { randomUUID } from 'crypto';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import { PrismaService } from '../prisma.service';
@@ -160,6 +163,47 @@ export class PsbService {
     });
   }
 
+  // Physical directory where uploaded financial files are stored. Resolution
+  // order:
+  //   1. REPORT_UPLOAD_DIR  - absolute path to the upload folder.
+  //   2. PSB_ROOT_DIR       - the IIS root (e.g. D:\ASD\PSBIIS\psb); the folder
+  //                           is then <root>/project/financial/Upload/file.
+  //   3. Fallback: resolved relative to the running app. In the standard
+  //      deployment the backend runs from <IIS_ROOT>/psbnode/next/backend, so
+  //      three levels up from cwd is the IIS root.
+  private getUploadDir(): string {
+    if (process.env.REPORT_UPLOAD_DIR) {
+      return process.env.REPORT_UPLOAD_DIR;
+    }
+    const root =
+      process.env.PSB_ROOT_DIR || path.resolve(process.cwd(), '..', '..', '..');
+    return path.join(root, 'project', 'financial', 'Upload', 'file');
+  }
+
+  // Timestamp suffix ("yyyyMMMdd_hhmmss", e.g. 2026Jul16_094512) appended to a
+  // file name when one with the same name already exists in the upload folder.
+  private fileTimestamp(now: Date = new Date()): string {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    const pad = (n: number): string => String(n).padStart(2, '0');
+    return (
+      `${now.getFullYear()}${months[now.getMonth()]}${pad(now.getDate())}` +
+      `_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`
+    );
+  }
+
   async uploadReport(data: {
     reportId: number;
     reportDate: Date;
@@ -177,17 +221,27 @@ export class PsbService {
       );
     }
 
-    // Physical directory where files are written (mirrors the old ASP upload
-    // folder). Configurable so each environment can point at its own storage.
-    const uploadDir =
-      process.env.REPORT_UPLOAD_DIR ||
-      path.join(process.cwd(), 'uploads', 'financial', 'file');
+    const uploadDir = this.getUploadDir();
     fs.mkdirSync(uploadDir, { recursive: true });
 
-    // Prefix a unique token so re-uploading a file with the same name (e.g.
-    // "monthly.xlsx" each month) does not overwrite previously stored versions.
+    // Keep the original file name. Only when a file with that name already
+    // exists, append a "_yyyyMMMdd_hhmmss" timestamp before the extension so an
+    // existing version is not overwritten. If that timestamped name also exists
+    // (e.g. two uploads within the same second), add an incrementing counter so
+    // no stored file is ever overwritten.
     const originalName = path.basename(file.originalname);
-    const fileName = `${Date.now()}-${randomUUID()}-${originalName}`;
+    let fileName = originalName;
+    if (fs.existsSync(path.join(uploadDir, fileName))) {
+      const ext = path.extname(originalName);
+      const base = path.basename(originalName, ext);
+      const stamp = this.fileTimestamp();
+      fileName = `${base}_${stamp}${ext}`;
+      let counter = 1;
+      while (fs.existsSync(path.join(uploadDir, fileName))) {
+        fileName = `${base}_${stamp}_${counter}${ext}`;
+        counter += 1;
+      }
+    }
     fs.writeFileSync(path.join(uploadDir, fileName), file.buffer);
 
     // Web-accessible location stored in the DB (mirrors the old FileLocation).
@@ -384,6 +438,29 @@ export class PsbService {
       where: { ArchiveID: archiveId },
       data: { Status: 'disable' },
     });
+  }
+
+  // Resolve a stored report file to its physical path for download. The stored
+  // FileLocation is a web path; the physical file lives under the upload dir
+  // using the same (unique) file name.
+  async getReportDetailFile(archiveId: number): Promise<{
+    filePath: string;
+    downloadName: string;
+  }> {
+    const detail = await this.prisma.client.reportDetail.findUnique({
+      where: { ArchiveID: archiveId },
+    });
+    if (!detail || !detail.FileLocation) {
+      throw new NotFoundException('File not found.');
+    }
+
+    const storedName = path.basename(detail.FileLocation);
+    const filePath = path.join(this.getUploadDir(), storedName);
+    if (!fs.existsSync(filePath)) {
+      throw new NotFoundException('File not found on the server.');
+    }
+
+    return { filePath, downloadName: storedName };
   }
 
   async getReportDetailByDate(reportId: number, reportDate: Date) {

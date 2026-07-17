@@ -5,6 +5,7 @@ import axios from 'axios';
 import dayjs from 'dayjs';
 import {
   ActionIcon,
+  Anchor,
   Box,
   Container,
   Group,
@@ -16,7 +17,7 @@ import {
   Text,
   Title,
 } from '@mantine/core';
-import { IconTrash } from '@tabler/icons-react';
+import { IconDownload, IconTrash } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { modals } from '@mantine/modals';
 import { Report, ReportDetail } from '@/types/report';
@@ -129,6 +130,12 @@ export default function DeleteReportPage() {
   const formatDate = (date: string | null): string =>
     date ? dayjs(date).format('DD/MM/YYYY') : '-';
 
+  const downloadUrl = (detail: ReportDetail): string =>
+    `${API_BASE}/psb/reportdetails/${detail.ArchiveID}/download`;
+
+  const fileName = (detail: ReportDetail): string =>
+    (detail.FileLocation ?? '').split('/').pop() ?? '';
+
   return (
     <Container size="md" py="xl">
       <Paper shadow="sm" p="xl" radius="md" withBorder>
@@ -183,10 +190,29 @@ export default function DeleteReportPage() {
                             {formatDate(detail.ReportDate)}
                           </Table.Td>
                           <Table.Td style={{ wordBreak: 'break-all' }}>
-                            {detail.FileLocation ?? '-'}
+                            {detail.FileLocation ? (
+                              <Anchor
+                                href={downloadUrl(detail)}
+                                download={fileName(detail)}
+                              >
+                                {fileName(detail)}
+                              </Anchor>
+                            ) : (
+                              '-'
+                            )}
                           </Table.Td>
                           <Table.Td style={{ textAlign: 'center' }}>
-                            <Group justify="center" gap={0}>
+                            <Group justify="center" gap={4} wrap="nowrap">
+                              <ActionIcon
+                                component="a"
+                                href={downloadUrl(detail)}
+                                download={fileName(detail)}
+                                color="blue"
+                                variant="subtle"
+                                aria-label="Download file"
+                              >
+                                <IconDownload size={18} />
+                              </ActionIcon>
                               <ActionIcon
                                 color="red"
                                 variant="subtle"

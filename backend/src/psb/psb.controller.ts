@@ -9,8 +9,10 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  StreamableFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { createReadStream } from 'fs';
 import { PsbService } from './psb.service';
 
 @Controller('psb')
@@ -137,6 +139,25 @@ export class PsbController {
       throw new BadRequestException('A valid report date is required.');
     }
     return this.psbService.uploadReport({ reportId, reportDate, file });
+  }
+
+  @Get('reportdetails/:id/download')
+  async downloadReportDetail(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<StreamableFile> {
+    const { filePath, downloadName } =
+      await this.psbService.getReportDetailFile(id);
+    // RFC 6266: quoted ASCII fallback for legacy clients plus a percent-encoded
+    // filename* for full-fidelity Unicode names. Only filename* is encoded.
+    const asciiName = downloadName
+      .replace(/[^\x20-\x7e]/g, '_')
+      .replace(/["\\]/g, '_');
+    return new StreamableFile(createReadStream(filePath), {
+      type: 'application/octet-stream',
+      disposition:
+        `attachment; filename="${asciiName}"; ` +
+        `filename*=UTF-8''${encodeURIComponent(downloadName)}`,
+    });
   }
 
   @Post('reportdetails/:id/delete')
