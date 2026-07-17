@@ -3,10 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import {
-  Box,
   Button,
   Container,
-  LoadingOverlay,
   Paper,
   Text,
   TextInput,
@@ -277,8 +275,15 @@ export default function ModifyReportPage() {
       columnPinning: { left: [REPORT_COL] },
     },
     state: { isLoading: loading },
-    mantineTableContainerProps: { style: { maxHeight: '65vh' } },
-    mantinePaperProps: { withBorder: false, shadow: 'none' },
+    mantineTableContainerProps: { style: { maxHeight: '70vh' } },
+    mantinePaperProps: { withBorder: true, shadow: 'sm', radius: 'md' },
+    mantineTableProps: { style: { width: '100%' } },
+    mantineTableHeadCellProps: {
+      style: { paddingTop: 6, paddingBottom: 6 },
+    },
+    mantineTableBodyCellProps: {
+      style: { paddingTop: 2, paddingBottom: 2 },
+    },
     renderTopToolbarCustomActions: () => (
       <Button
         onClick={handleSave}
@@ -295,23 +300,20 @@ export default function ModifyReportPage() {
   });
 
   return (
-    <Container size="xl" py="xl">
-      <Paper shadow="sm" p="xl" radius="md" withBorder>
-        <Box style={{ position: 'relative' }}>
-          <LoadingOverlay visible={loading} />
-          <Title order={3} ta="center" mb="md">
-            Modify the Report-District Table
-          </Title>
+    <Container fluid px="md" py="lg">
+      <Title order={3} ta="center" mb="md">
+        Modify the Report-District Table
+      </Title>
 
-          {!loading && (data.length === 0 || districts.length === 0) ? (
-            <Text ta="center" c="dimmed">
-              No data found. Please add reports and districts first.
-            </Text>
-          ) : (
-            <MantineReactTable table={table} />
-          )}
-        </Box>
-      </Paper>
+      {!loading && (data.length === 0 || districts.length === 0) ? (
+        <Paper shadow="sm" p="xl" radius="md" withBorder>
+          <Text ta="center" c="dimmed">
+            No data found. Please add reports and districts first.
+          </Text>
+        </Paper>
+      ) : (
+        <MantineReactTable table={table} />
+      )}
     </Container>
   );
 }

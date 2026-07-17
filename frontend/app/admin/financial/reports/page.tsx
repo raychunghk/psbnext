@@ -180,6 +180,39 @@ export default function ReportsPage() {
               Add / Delete a Report
             </Title>
 
+            <Group align="flex-end" gap="sm">
+              <NumberInput
+                label="Ranking"
+                w={100}
+                min={0}
+                value={newRank}
+                onChange={setNewRank}
+                allowNegative={false}
+                hideControls
+              />
+              <TextInput
+                style={{ flex: 1 }}
+                label="New Report"
+                placeholder="Enter report name"
+                value={newName}
+                maxLength={100}
+                onChange={(event) => setNewName(event.currentTarget.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    addReport();
+                  }
+                }}
+              />
+              <Button
+                onClick={addReport}
+                loading={submitting}
+                leftSection={<IconPlus size={18} />}
+                style={{ backgroundColor: '#2665E5' }}
+              >
+                Add
+              </Button>
+            </Group>
+
             <Table striped highlightOnHover withTableBorder>
               <Table.Thead>
                 <Table.Tr>
@@ -247,39 +280,6 @@ export default function ReportsPage() {
                 )}
               </Table.Tbody>
             </Table>
-
-            <Group align="flex-end" gap="sm">
-              <NumberInput
-                label="Ranking"
-                w={100}
-                min={0}
-                value={newRank}
-                onChange={setNewRank}
-                allowNegative={false}
-                hideControls
-              />
-              <TextInput
-                style={{ flex: 1 }}
-                label="New Report"
-                placeholder="Enter report name"
-                value={newName}
-                maxLength={100}
-                onChange={(event) => setNewName(event.currentTarget.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    addReport();
-                  }
-                }}
-              />
-              <Button
-                onClick={addReport}
-                loading={submitting}
-                leftSection={<IconPlus size={18} />}
-                style={{ backgroundColor: '#2665E5' }}
-              >
-                Add
-              </Button>
-            </Group>
           </Stack>
         </Box>
       </Paper>

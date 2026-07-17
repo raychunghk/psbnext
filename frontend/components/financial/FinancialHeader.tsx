@@ -1,26 +1,32 @@
 'use client';
 
-import { Box, Title, Text } from '@mantine/core';
+import { Group, Title } from '@mantine/core';
 
 export const FinancialHeader: React.FC = () => {
   return (
-    <Box>
-      <Box
+    <Group
+      h="100%"
+      px="md"
+      justify="center"
+      align="center"
+      style={{
+        background: 'linear-gradient(90deg, #2f4b7c 0%, #3b5b8c 100%)',
+        color: 'white',
+      }}
+    >
+      <Title
+        order={4}
+        c="white"
         style={{
-          backgroundColor: '#2665E5',
-          color: 'white',
+          fontFamily: 'Arial, Helvetica, sans-serif',
+          fontWeight: 700,
+          letterSpacing: 0.3,
           textAlign: 'center',
-          padding: '18px 0',
+          lineHeight: 1.1,
         }}
       >
-        <Title order={2} c="white" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
-          Financial Statements
-        </Title>
-        <Text size="lg" c="white" fw={700} style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
-          Report Management System
-        </Text>
-      </Box>
-      <Box style={{ backgroundColor: '#0B0B9E', height: '15px' }} />
-    </Box>
+        Financial Statements - Report Management System
+      </Title>
+    </Group>
   );
 };
