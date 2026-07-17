@@ -9,8 +9,10 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  StreamableFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { createReadStream } from 'fs';
 import { PsbService } from './psb.service';
 
 @Controller('psb')
@@ -137,6 +139,18 @@ export class PsbController {
       throw new BadRequestException('A valid report date is required.');
     }
     return this.psbService.uploadReport({ reportId, reportDate, file });
+  }
+
+  @Get('reportdetails/:id/download')
+  async downloadReportDetail(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<StreamableFile> {
+    const { filePath, downloadName } =
+      await this.psbService.getReportDetailFile(id);
+    return new StreamableFile(createReadStream(filePath), {
+      type: 'application/octet-stream',
+      disposition: `attachment; filename="${encodeURIComponent(downloadName)}"`,
+    });
   }
 
   @Post('reportdetails/:id/delete')

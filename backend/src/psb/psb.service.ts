@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -160,6 +164,23 @@ export class PsbService {
     });
   }
 
+  // Physical directory where uploaded financial files are stored. Resolution
+  // order:
+  //   1. REPORT_UPLOAD_DIR  - absolute path to the upload folder.
+  //   2. PSB_ROOT_DIR       - the IIS root (e.g. D:\ASD\PSBIIS\psb); the folder
+  //                           is then <root>/project/financial/Upload/file.
+  //   3. Fallback: resolved relative to the running app. In the standard
+  //      deployment the backend runs from <IIS_ROOT>/psbnode/next/backend, so
+  //      three levels up from cwd is the IIS root.
+  private getUploadDir(): string {
+    if (process.env.REPORT_UPLOAD_DIR) {
+      return process.env.REPORT_UPLOAD_DIR;
+    }
+    const root =
+      process.env.PSB_ROOT_DIR || path.resolve(process.cwd(), '..', '..', '..');
+    return path.join(root, 'project', 'financial', 'Upload', 'file');
+  }
+
   async uploadReport(data: {
     reportId: number;
     reportDate: Date;
@@ -177,11 +198,7 @@ export class PsbService {
       );
     }
 
-    // Physical directory where files are written (mirrors the old ASP upload
-    // folder). Configurable so each environment can point at its own storage.
-    const uploadDir =
-      process.env.REPORT_UPLOAD_DIR ||
-      path.join(process.cwd(), 'uploads', 'financial', 'file');
+    const uploadDir = this.getUploadDir();
     fs.mkdirSync(uploadDir, { recursive: true });
 
     // Prefix a unique token so re-uploading a file with the same name (e.g.
@@ -384,6 +401,36 @@ export class PsbService {
       where: { ArchiveID: archiveId },
       data: { Status: 'disable' },
     });
+  }
+
+  // Resolve a stored report file to its physical path for download. The stored
+  // FileLocation is a web path; the physical file lives under the upload dir
+  // using the same (unique) file name.
+  async getReportDetailFile(archiveId: number): Promise<{
+    filePath: string;
+    downloadName: string;
+  }> {
+    const detail = await this.prisma.client.reportDetail.findUnique({
+      where: { ArchiveID: archiveId },
+    });
+    if (!detail || !detail.FileLocation) {
+      throw new NotFoundException('File not found.');
+    }
+
+    const storedName = path.basename(detail.FileLocation);
+    const filePath = path.join(this.getUploadDir(), storedName);
+    if (!fs.existsSync(filePath)) {
+      throw new NotFoundException('File not found on the server.');
+    }
+
+    // Strip the "<timestamp>-<uuid>-" prefix added at upload time to restore
+    // the original file name for the download.
+    const downloadName = storedName.replace(
+      /^\d+-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-/i,
+      '',
+    );
+
+    return { filePath, downloadName: downloadName || storedName };
   }
 
   async getReportDetailByDate(reportId: number, reportDate: Date) {
