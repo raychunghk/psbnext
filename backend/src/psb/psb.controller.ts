@@ -173,6 +173,25 @@ export class PsbController {
     return this.psbService.getDistrictReports(id);
   }
 
+  // =============================================
+  // REPORT-DISTRICT MATRIX ENDPOINTS
+  // =============================================
+
+  @Get('report-district/matrix')
+  async getReportDistrictMatrix() {
+    return this.psbService.getReportDistrictMatrix();
+  }
+
+  @Post('report-district/batch-update')
+  async batchUpdateReportDistrict(
+    @Body()
+    body: {
+      changes: { reportId: number; districtId: number; value: string }[];
+    },
+  ) {
+    return this.psbService.batchUpdateReportDistrict(body.changes ?? []);
+  }
+
   @Get('districts/:id/rel-values')
   async getRelValues(@Param('id', ParseIntPipe) id: number) {
     return this.psbService.getDistinctRelValues(id);

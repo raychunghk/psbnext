@@ -284,6 +284,74 @@ export class PsbService {
   }
 
   // =============================================
+  // REPORT-DISTRICT MATRIX SERVICES
+  // =============================================
+
+  async getReportDistrictMatrix() {
+    const reports = await this.prisma.client.report.findMany({
+      where: { Status: 'enable' },
+      orderBy: { Rank: 'asc' },
+      select: { ReportID: true, ReportName: true, Rank: true },
+    });
+    const districts = await this.prisma.client.district.findMany({
+      where: { Status: 'enable' },
+      orderBy: { DistrictName: 'asc' },
+      select: { DistrictID: true, DistrictName: true },
+    });
+
+    // District_Report is @ignore in Prisma, so read the mapping via raw SQL.
+    const values = await this.prisma.client.$queryRaw<
+      { DistrictID: number; ReportID: number; rel_Value: string }[]
+    >`
+      SELECT DistrictID, ReportID, rel_Value
+      FROM District_Report
+    `;
+
+    return { reports, districts, values };
+  }
+
+  async batchUpdateReportDistrict(
+    changes: { reportId: number; districtId: number; value: string }[],
+  ) {
+    if (!Array.isArray(changes) || changes.length === 0) {
+      return { updated: 0 };
+    }
+
+    for (const change of changes) {
+      if (
+        !Number.isInteger(change.reportId) ||
+        !Number.isInteger(change.districtId)
+      ) {
+        throw new BadRequestException(
+          'Each change requires a valid reportId and districtId.',
+        );
+      }
+    }
+
+    // Apply every change in a single transaction so the matrix update is
+    // atomic (replaces the legacy per-cell ADO UPDATE loop / N+1 queries).
+    // An empty value maps back to the sentinel 'null' string, mirroring the
+    // legacy ASP behaviour.
+    const results = await this.prisma.client.$transaction(
+      changes.map((change) => {
+        const relValue =
+          typeof change.value === 'string' && change.value.trim() !== ''
+            ? change.value.trim()
+            : 'null';
+        return this.prisma.client.$executeRaw`
+          UPDATE District_Report
+          SET rel_Value = ${relValue}
+          WHERE DistrictID = ${change.districtId}
+          AND ReportID = ${change.reportId}
+        `;
+      }),
+    );
+
+    const updated = results.reduce((sum, count) => sum + count, 0);
+    return { updated };
+  }
+
+  // =============================================
   // REPORT DETAIL SERVICES
   // =============================================
 
