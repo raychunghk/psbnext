@@ -3,7 +3,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { PrismaService } from '../prisma.service';
@@ -181,6 +180,30 @@ export class PsbService {
     return path.join(root, 'project', 'financial', 'Upload', 'file');
   }
 
+  // Timestamp suffix ("yyyyMMMdd_hhmmss", e.g. 2026Jul16_094512) appended to a
+  // file name when one with the same name already exists in the upload folder.
+  private fileTimestamp(now: Date = new Date()): string {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    const pad = (n: number): string => String(n).padStart(2, '0');
+    return (
+      `${now.getFullYear()}${months[now.getMonth()]}${pad(now.getDate())}` +
+      `_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`
+    );
+  }
+
   async uploadReport(data: {
     reportId: number;
     reportDate: Date;
@@ -201,10 +224,16 @@ export class PsbService {
     const uploadDir = this.getUploadDir();
     fs.mkdirSync(uploadDir, { recursive: true });
 
-    // Prefix a unique token so re-uploading a file with the same name (e.g.
-    // "monthly.xlsx" each month) does not overwrite previously stored versions.
+    // Keep the original file name. Only when a file with that name already
+    // exists, append a "_yyyyMMMdd_hhmmss" timestamp before the extension so an
+    // existing version is not overwritten.
     const originalName = path.basename(file.originalname);
-    const fileName = `${Date.now()}-${randomUUID()}-${originalName}`;
+    let fileName = originalName;
+    if (fs.existsSync(path.join(uploadDir, fileName))) {
+      const ext = path.extname(originalName);
+      const base = path.basename(originalName, ext);
+      fileName = `${base}_${this.fileTimestamp()}${ext}`;
+    }
     fs.writeFileSync(path.join(uploadDir, fileName), file.buffer);
 
     // Web-accessible location stored in the DB (mirrors the old FileLocation).
@@ -423,14 +452,7 @@ export class PsbService {
       throw new NotFoundException('File not found on the server.');
     }
 
-    // Strip the "<timestamp>-<uuid>-" prefix added at upload time to restore
-    // the original file name for the download.
-    const downloadName = storedName.replace(
-      /^\d+-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-/i,
-      '',
-    );
-
-    return { filePath, downloadName: downloadName || storedName };
+    return { filePath, downloadName: storedName };
   }
 
   async getReportDetailByDate(reportId: number, reportDate: Date) {

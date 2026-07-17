@@ -133,15 +133,8 @@ export default function DeleteReportPage() {
   const downloadUrl = (detail: ReportDetail): string =>
     `${API_BASE}/psb/reportdetails/${detail.ArchiveID}/download`;
 
-  const fileName = (detail: ReportDetail): string => {
-    const base = (detail.FileLocation ?? '').split('/').pop() ?? '';
-    return (
-      base.replace(
-        /^\d+-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-/i,
-        ''
-      ) || base
-    );
-  };
+  const fileName = (detail: ReportDetail): string =>
+    (detail.FileLocation ?? '').split('/').pop() ?? '';
 
   return (
     <Container size="md" py="xl">
