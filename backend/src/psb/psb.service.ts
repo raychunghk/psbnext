@@ -226,13 +226,21 @@ export class PsbService {
 
     // Keep the original file name. Only when a file with that name already
     // exists, append a "_yyyyMMMdd_hhmmss" timestamp before the extension so an
-    // existing version is not overwritten.
+    // existing version is not overwritten. If that timestamped name also exists
+    // (e.g. two uploads within the same second), add an incrementing counter so
+    // no stored file is ever overwritten.
     const originalName = path.basename(file.originalname);
     let fileName = originalName;
     if (fs.existsSync(path.join(uploadDir, fileName))) {
       const ext = path.extname(originalName);
       const base = path.basename(originalName, ext);
-      fileName = `${base}_${this.fileTimestamp()}${ext}`;
+      const stamp = this.fileTimestamp();
+      fileName = `${base}_${stamp}${ext}`;
+      let counter = 1;
+      while (fs.existsSync(path.join(uploadDir, fileName))) {
+        fileName = `${base}_${stamp}_${counter}${ext}`;
+        counter += 1;
+      }
     }
     fs.writeFileSync(path.join(uploadDir, fileName), file.buffer);
 
