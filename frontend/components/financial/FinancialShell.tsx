@@ -1,6 +1,6 @@
 'use client';
 
-import { AppShell, Burger, Button, Stack } from '@mantine/core';
+import { AppShell, Box, Burger, Button, Group, Stack } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import {
   IconUpload,
@@ -11,12 +11,15 @@ import {
 } from '@tabler/icons-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { FinancialHeader } from './FinancialHeader';
+import { FinancialLogo } from './FinancialLogo';
 
 interface NavLink {
   label: string;
   href: string;
   icon: React.ReactNode;
 }
+
+const HEADER_HEIGHT = 64;
 
 const NAV_LINKS: NavLink[] = [
   { label: 'Upload File', href: '/admin/financial/upload', icon: <IconUpload size={18} /> },
@@ -38,7 +41,8 @@ export const FinancialShell: React.FC<{ children: React.ReactNode }> = ({ childr
 
   return (
     <AppShell
-      header={{ height: 64 }}
+      layout="alt"
+      header={{ height: HEADER_HEIGHT }}
       navbar={{ width: 260, breakpoint: 'sm', collapsed: { mobile: !opened } }}
       padding="md"
       styles={{
@@ -46,20 +50,37 @@ export const FinancialShell: React.FC<{ children: React.ReactNode }> = ({ childr
         navbar: { backgroundColor: '#ffffff' },
       }}
     >
-      <AppShell.Header withBorder={false}>
-        <Burger
-          opened={opened}
-          onClick={toggle}
-          hiddenFrom="sm"
-          size="sm"
-          style={{ position: 'absolute', top: 20, left: 12, zIndex: 1 }}
-          color="white"
-        />
-        <FinancialHeader />
+      <AppShell.Header
+        withBorder={false}
+        style={{
+          background: 'linear-gradient(90deg, #2f4b7c 0%, #3b5b8c 100%)',
+        }}
+      >
+        <Group h="100%" px="md" gap="sm" wrap="nowrap" style={{ position: 'relative' }}>
+          <Burger
+            opened={opened}
+            onClick={toggle}
+            hiddenFrom="sm"
+            size="sm"
+            color="white"
+          />
+          <FinancialHeader />
+        </Group>
       </AppShell.Header>
 
-      <AppShell.Navbar p="md">
-        <Stack gap="sm">
+      <AppShell.Navbar>
+        <Box
+          h={HEADER_HEIGHT}
+          px="md"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            borderBottom: '1px solid var(--mantine-color-gray-3)',
+          }}
+        >
+          <FinancialLogo />
+        </Box>
+        <Stack gap="sm" p="md">
           {NAV_LINKS.map((link) => {
             const active = pathname === link.href;
             return (

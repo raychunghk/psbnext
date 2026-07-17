@@ -17,3 +17,11 @@ export const isProduction = (): boolean => {
 export const getBasePath = (): string => {
   return process.env.NEXT_PUBLIC_BASE_PATH || '/next';
 };
+
+// Prefix a public asset path with the configured basePath. Required because this
+// Next version does not automatically apply basePath to `next/image` `src`,
+// plain `<img>`, or `<link>` hrefs.
+export const assetPath = (path: string): string => {
+  const normalized = path.startsWith('/') ? path : `/${path}`;
+  return `${getBasePath()}${normalized}`;
+};

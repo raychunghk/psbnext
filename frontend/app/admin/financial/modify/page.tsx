@@ -277,12 +277,24 @@ export default function ModifyReportPage() {
     state: { isLoading: loading },
     mantineTableContainerProps: { style: { maxHeight: '70vh' } },
     mantinePaperProps: { withBorder: true, shadow: 'sm', radius: 'md' },
-    mantineTableProps: { style: { width: '100%' } },
+    mantineTableProps: {
+      style: { width: '100%' },
+    },
     mantineTableHeadCellProps: {
-      style: { paddingTop: 6, paddingBottom: 6 },
+      style: {
+        paddingTop: 6,
+        paddingBottom: 6,
+        backgroundColor: '#2f4b7c',
+        color: '#ffffff',
+        borderRight: '1px solid rgba(255, 255, 255, 0.25)',
+      },
     },
     mantineTableBodyCellProps: {
-      style: { paddingTop: 2, paddingBottom: 2 },
+      style: {
+        paddingTop: 2,
+        paddingBottom: 2,
+        borderRight: '1px solid var(--mantine-color-gray-3)',
+      },
     },
     renderTopToolbarCustomActions: () => (
       <Button
