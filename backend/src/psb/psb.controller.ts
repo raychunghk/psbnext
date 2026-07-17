@@ -147,9 +147,16 @@ export class PsbController {
   ): Promise<StreamableFile> {
     const { filePath, downloadName } =
       await this.psbService.getReportDetailFile(id);
+    // RFC 6266: quoted ASCII fallback for legacy clients plus a percent-encoded
+    // filename* for full-fidelity Unicode names. Only filename* is encoded.
+    const asciiName = downloadName
+      .replace(/[^\x20-\x7e]/g, '_')
+      .replace(/["\\]/g, '_');
     return new StreamableFile(createReadStream(filePath), {
       type: 'application/octet-stream',
-      disposition: `attachment; filename="${encodeURIComponent(downloadName)}"`,
+      disposition:
+        `attachment; filename="${asciiName}"; ` +
+        `filename*=UTF-8''${encodeURIComponent(downloadName)}`,
     });
   }
 
