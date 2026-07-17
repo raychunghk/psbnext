@@ -1,6 +1,16 @@
 'use client';
 
-import { AppShell, Box, Burger, Button, Group, Stack } from '@mantine/core';
+import { useState, useTransition } from 'react';
+import {
+  AppShell,
+  Box,
+  Burger,
+  Button,
+  Group,
+  LoadingOverlay,
+  Progress,
+  Stack,
+} from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import {
   IconUpload,
@@ -33,10 +43,19 @@ export const FinancialShell: React.FC<{ children: React.ReactNode }> = ({ childr
   const [opened, { toggle, close }] = useDisclosure();
   const router = useRouter();
   const pathname = usePathname();
+  const [isPending, startTransition] = useTransition();
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
 
   const go = (href: string) => {
-    router.push(href);
+    if (href === pathname) {
+      close();
+      return;
+    }
+    setPendingHref(href);
     close();
+    startTransition(() => {
+      router.push(href);
+    });
   };
 
   return (
@@ -56,6 +75,17 @@ export const FinancialShell: React.FC<{ children: React.ReactNode }> = ({ childr
           background: 'linear-gradient(90deg, #2f4b7c 0%, #3b5b8c 100%)',
         }}
       >
+        {isPending && (
+          <Progress
+            value={100}
+            striped
+            animated
+            size="xs"
+            radius={0}
+            color="yellow"
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 2 }}
+          />
+        )}
         <Group h="100%" px="md" gap="sm" wrap="nowrap" style={{ position: 'relative' }}>
           <Burger
             opened={opened}
@@ -91,6 +121,7 @@ export const FinancialShell: React.FC<{ children: React.ReactNode }> = ({ childr
                 rightSection={link.icon}
                 variant={active ? 'filled' : 'light'}
                 color={active ? 'blue' : 'gray'}
+                loading={isPending && pendingHref === link.href}
                 onClick={() => go(link.href)}
               >
                 {link.label}
@@ -100,7 +131,16 @@ export const FinancialShell: React.FC<{ children: React.ReactNode }> = ({ childr
         </Stack>
       </AppShell.Navbar>
 
-      <AppShell.Main>{children}</AppShell.Main>
+      <AppShell.Main>
+        <Box style={{ position: 'relative', minHeight: '60vh' }}>
+          <LoadingOverlay
+            visible={isPending}
+            zIndex={5}
+            overlayProps={{ radius: 'sm', blur: 1 }}
+          />
+          {children}
+        </Box>
+      </AppShell.Main>
     </AppShell>
   );
 };
