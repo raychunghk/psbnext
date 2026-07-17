@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useTransition } from 'react';
 import {
   AppShell,
   Box,
@@ -11,17 +11,19 @@ import {
   Progress,
   Stack,
 } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
 import {
-  IconUpload,
-  IconTrash,
+  IconCalendarEvent,
   IconEdit,
+  IconHome,
   IconMap,
   IconReportAnalytics,
+  IconTrash,
+  IconUpload,
 } from '@tabler/icons-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { FinancialHeader } from './FinancialHeader';
-import { FinancialLogo } from './FinancialLogo';
+import { useAdminUiStore } from '@/lib/stores/adminUiStore';
+import { AdminHeader } from './AdminHeader';
+import { AdminLogo } from './AdminLogo';
 
 interface NavLink {
   label: string;
@@ -32,27 +34,29 @@ interface NavLink {
 const HEADER_HEIGHT = 64;
 
 const NAV_LINKS: NavLink[] = [
+  { label: 'Admin Home', href: '/admin', icon: <IconHome size={18} /> },
   { label: 'Upload File', href: '/admin/financial/upload', icon: <IconUpload size={18} /> },
   { label: 'Delete File', href: '/admin/financial/delete', icon: <IconTrash size={18} /> },
   { label: 'Manage Reports', href: '/admin/financial/reports', icon: <IconReportAnalytics size={18} /> },
   { label: 'Manage Districts', href: '/admin/financial/districts', icon: <IconMap size={18} /> },
   { label: 'Modify Report-District', href: '/admin/financial/modify', icon: <IconEdit size={18} /> },
+  { label: 'Events', href: '/admin/events', icon: <IconCalendarEvent size={18} /> },
 ];
 
-export const FinancialShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [opened, { toggle, close }] = useDisclosure();
+export const AdminShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
-  const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const { navOpened, toggleNav, closeNav, pendingHref, setPendingHref } =
+    useAdminUiStore();
 
   const go = (href: string) => {
     if (href === pathname) {
-      close();
+      closeNav();
       return;
     }
     setPendingHref(href);
-    close();
+    closeNav();
     startTransition(() => {
       router.push(href);
     });
@@ -62,7 +66,7 @@ export const FinancialShell: React.FC<{ children: React.ReactNode }> = ({ childr
     <AppShell
       layout="alt"
       header={{ height: HEADER_HEIGHT }}
-      navbar={{ width: 260, breakpoint: 'sm', collapsed: { mobile: !opened } }}
+      navbar={{ width: 260, breakpoint: 'sm', collapsed: { mobile: !navOpened } }}
       padding="md"
       styles={{
         main: { backgroundColor: '#f8f9fa' },
@@ -88,13 +92,13 @@ export const FinancialShell: React.FC<{ children: React.ReactNode }> = ({ childr
         )}
         <Group h="100%" px="md" gap="sm" wrap="nowrap" style={{ position: 'relative' }}>
           <Burger
-            opened={opened}
-            onClick={toggle}
+            opened={navOpened}
+            onClick={toggleNav}
             hiddenFrom="sm"
             size="sm"
             color="white"
           />
-          <FinancialHeader />
+          <AdminHeader />
         </Group>
       </AppShell.Header>
 
@@ -108,7 +112,7 @@ export const FinancialShell: React.FC<{ children: React.ReactNode }> = ({ childr
             borderBottom: '1px solid var(--mantine-color-gray-3)',
           }}
         >
-          <FinancialLogo />
+          <AdminLogo />
         </Box>
         <Stack gap="sm" p="md">
           {NAV_LINKS.map((link) => {
