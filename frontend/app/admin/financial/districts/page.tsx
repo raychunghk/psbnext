@@ -135,6 +135,30 @@ export default function DistrictsPage() {
               Add / Delete a District
             </Title>
 
+            <Group align="flex-end" gap="sm">
+              <TextInput
+                style={{ flex: 1 }}
+                label="New District"
+                placeholder="Enter district name"
+                value={newName}
+                maxLength={100}
+                onChange={(event) => setNewName(event.currentTarget.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    addDistrict();
+                  }
+                }}
+              />
+              <Button
+                onClick={addDistrict}
+                loading={submitting}
+                leftSection={<IconPlus size={18} />}
+                style={{ backgroundColor: '#2665E5' }}
+              >
+                Add
+              </Button>
+            </Group>
+
             <Table striped highlightOnHover withTableBorder>
               <Table.Thead>
                 <Table.Tr>
@@ -176,30 +200,6 @@ export default function DistrictsPage() {
                 )}
               </Table.Tbody>
             </Table>
-
-            <Group align="flex-end" gap="sm">
-              <TextInput
-                style={{ flex: 1 }}
-                label="New District"
-                placeholder="Enter district name"
-                value={newName}
-                maxLength={100}
-                onChange={(event) => setNewName(event.currentTarget.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    addDistrict();
-                  }
-                }}
-              />
-              <Button
-                onClick={addDistrict}
-                loading={submitting}
-                leftSection={<IconPlus size={18} />}
-                style={{ backgroundColor: '#2665E5' }}
-              >
-                Add
-              </Button>
-            </Group>
           </Stack>
         </Box>
       </Paper>

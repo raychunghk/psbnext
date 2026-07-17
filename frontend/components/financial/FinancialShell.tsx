@@ -38,17 +38,21 @@ export const FinancialShell: React.FC<{ children: React.ReactNode }> = ({ childr
 
   return (
     <AppShell
-      header={{ height: 120 }}
+      header={{ height: 64 }}
       navbar={{ width: 260, breakpoint: 'sm', collapsed: { mobile: !opened } }}
       padding="md"
+      styles={{
+        main: { backgroundColor: '#f8f9fa' },
+        navbar: { backgroundColor: '#ffffff' },
+      }}
     >
-      <AppShell.Header>
+      <AppShell.Header withBorder={false}>
         <Burger
           opened={opened}
           onClick={toggle}
           hiddenFrom="sm"
           size="sm"
-          style={{ position: 'absolute', top: 12, left: 12, zIndex: 1 }}
+          style={{ position: 'absolute', top: 20, left: 12, zIndex: 1 }}
           color="white"
         />
         <FinancialHeader />
