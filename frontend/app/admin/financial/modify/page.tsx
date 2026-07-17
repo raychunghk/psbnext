@@ -48,6 +48,12 @@ const cellKey = (reportId: number, districtId: number): string =>
 const normalize = (value: string): string =>
   value.trim().toLowerCase() === 'null' ? '' : value;
 
+// The canonical form a typed value takes once persisted and reloaded: the
+// backend trims and maps empty/whitespace/'null' to the sentinel, which
+// `normalize` then renders as empty. Keep the in-memory baseline in this form
+// so the dirty state and displayed value match what a reload would show.
+const canonical = (value: string): string => normalize(value.trim());
+
 export default function ModifyReportPage() {
   const [districts, setDistricts] = useState<District[]>([]);
   const [data, setData] = useState<MatrixRow[]>([]);
@@ -213,11 +219,32 @@ export default function ModifyReportPage() {
         message: 'The records have been updated.',
         color: 'green',
       });
-      // Reset the dirty baseline to the just-saved values.
+      // Reset both the displayed cells and the dirty baseline to the canonical
+      // (trimmed + sentinel-normalized) form the server actually persisted, so
+      // the grid clears its dirty state and matches what a reload would show.
+      const saved = new Map(
+        changes.map((change) => [
+          cellKey(change.reportId, change.districtId),
+          canonical(change.value),
+        ])
+      );
+      setData((prev) =>
+        prev.map((row) => {
+          let updated: MatrixRow | null = null;
+          for (const district of districts) {
+            const key = cellKey(row.reportId, district.DistrictID);
+            if (saved.has(key)) {
+              updated = updated ?? { ...row };
+              updated[districtKey(district.DistrictID)] = saved.get(key) ?? '';
+            }
+          }
+          return updated ?? row;
+        })
+      );
       setOriginal((prev) => {
         const next = { ...prev };
-        for (const change of changes) {
-          next[cellKey(change.reportId, change.districtId)] = change.value;
+        for (const [key, value] of saved) {
+          next[key] = value;
         }
         return next;
       });
