@@ -74,9 +74,35 @@ export class PsbController {
     return this.psbService.getEnabledReports();
   }
 
+  @Post('reports')
+  async createReport(@Body() body: { name: string; rank?: number }) {
+    const rank = Number(body.rank);
+    return this.psbService.createReport(
+      body.name ?? '',
+      Number.isInteger(rank) ? rank : 0,
+    );
+  }
+
   @Get('reports/:id')
   async getReport(@Param('id', ParseIntPipe) id: number) {
     return this.psbService.getReportById(id);
+  }
+
+  @Post('reports/:id/rank')
+  async updateReportRank(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { rank: number },
+  ) {
+    const rank = Number(body.rank);
+    if (!Number.isInteger(rank)) {
+      throw new BadRequestException('A valid rank is required.');
+    }
+    return this.psbService.updateReportRank(id, rank);
+  }
+
+  @Post('reports/:id/delete')
+  async deleteReport(@Param('id', ParseIntPipe) id: number) {
+    return this.psbService.deleteReport(id);
   }
 
   @Get('reports/:id/latest')
@@ -127,9 +153,19 @@ export class PsbController {
     return this.psbService.getEnabledDistricts();
   }
 
+  @Post('districts')
+  async createDistrict(@Body() body: { name: string }) {
+    return this.psbService.createDistrict(body.name ?? '');
+  }
+
   @Get('districts/:id')
   async getDistrict(@Param('id', ParseIntPipe) id: number) {
     return this.psbService.getDistrictById(id);
+  }
+
+  @Post('districts/:id/delete')
+  async deleteDistrict(@Param('id', ParseIntPipe) id: number) {
+    return this.psbService.deleteDistrict(id);
   }
 
   @Get('districts/:id/reports')

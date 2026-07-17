@@ -11,6 +11,12 @@ export interface UploadReportDto {
   file: File;
 }
 
+export interface District {
+  DistrictID: number;
+  DistrictName: string | null;
+  Status: string | null;
+}
+
 export interface ReportDetail {
   ArchiveID: number;
   ReportID: number | null;

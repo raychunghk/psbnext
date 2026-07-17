@@ -2,7 +2,13 @@
 
 import { AppShell, Burger, Button, Stack } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconUpload, IconTrash, IconEdit } from '@tabler/icons-react';
+import {
+  IconUpload,
+  IconTrash,
+  IconEdit,
+  IconMap,
+  IconReportAnalytics,
+} from '@tabler/icons-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { FinancialHeader } from './FinancialHeader';
 
@@ -15,6 +21,8 @@ interface NavLink {
 const NAV_LINKS: NavLink[] = [
   { label: 'Upload File', href: '/admin/financial/upload', icon: <IconUpload size={18} /> },
   { label: 'Delete File', href: '/admin/financial/delete', icon: <IconTrash size={18} /> },
+  { label: 'Manage Reports', href: '/admin/financial/reports', icon: <IconReportAnalytics size={18} /> },
+  { label: 'Manage Districts', href: '/admin/financial/districts', icon: <IconMap size={18} /> },
   { label: 'Modify Report-District', href: '/admin/financial/modify', icon: <IconEdit size={18} /> },
 ];
 
