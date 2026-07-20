@@ -8,7 +8,7 @@ import { assetPath } from '@/lib/config';
 export const AdminLogo: React.FC = () => {
   return (
     <Link
-      href="/"
+      href="https://psbiis/"
       style={{ textDecoration: 'none', color: 'inherit' }}
       aria-label="Go to home page"
     >
@@ -22,12 +22,12 @@ export const AdminLogo: React.FC = () => {
         />
         <Stack gap={0}>
           <Text
-            fw={700}
-            style={{ fontSize: 15, lineHeight: 1.15, letterSpacing: 1 }}
+            fw={600}
+            style={{ fontSize: 17, lineHeight: 1.3, letterSpacing: 1 }}
           >
             建築署
           </Text>
-          <Text c="dimmed" style={{ fontSize: 10, lineHeight: 1.15 }}>
+          <Text fw={500} style={{fontFamily:'Helvetica LT Narrow Regular', fontSize: 12, lineHeight: 1.2, letterSpacing: 0.1}}>
             Architectural Services Department
           </Text>
         </Stack>
