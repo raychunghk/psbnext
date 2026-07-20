@@ -2,7 +2,7 @@
 
 import { Title } from '@mantine/core';
 
-export const FinancialHeader: React.FC = () => {
+export const AdminHeader: React.FC = () => {
   return (
     <Title
       order={4}
