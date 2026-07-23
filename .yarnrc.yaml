@@ -1,0 +1,3 @@
+# .yarnrc.yml
+# Forces Yarn to use traditional, flat, physical folder structures
+nodeLinker: node-modules
