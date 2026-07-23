@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# log output (team convention: /log directory at project root)
+/log
+
 # vercel
 .vercel
 
