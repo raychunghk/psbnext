@@ -18,3 +18,5 @@ nextdeploy.7z
 deploy.zip
 /backend/src/generated/prisma
 /backend/uploads/financial/file
+/frontend-stage/backend/*.env
+/frontend-stage

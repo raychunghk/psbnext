@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@prisma/adapter-mssql": "^7.8.0",
@@ -44,6 +45,7 @@
     "@types/node": "^24.0.0",
     "@types/supertest": "^7.0.0",
     "esbuild": "^0.28.1",
+    "esbuild-plugin-tsc": "^0.6.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
